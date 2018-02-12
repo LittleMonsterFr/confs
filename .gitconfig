@@ -1,0 +1,54 @@
+[user]
+        name = Damien Laidin
+        email = damien@chirp.io
+
+[core]
+  editor = vim
+  #whitespace = blank-at-eol,space-before-tab,tab-in-indent,blank-at-eof,
+  excludesfile = /Users/littlemonster/.gitignore_global
+
+[push]
+  default = simple
+
+[alias]
+  s = status
+  po = push origin
+  #a = add --all :/
+  co = commit
+  cos = commit --signoff
+  cl = clone
+  l = log --graph --date=local --pretty=format:'%C(green)%h%Creset %C(white)-->%Creset %C(blue)%aN (%cE)%Creset %C(white):%Creset %C(yellow)%ad%Creset%  %C(white):%Creset%C(auto)%d%Creset%n%B'
+  ld = log --decorate --graph --date=local
+  rpo = remote prune origin
+  st = stash
+  stp = stash pop
+  pro = pull --rebase origin
+  uncommit = reset HEAD^
+  sub = submodule update --init --recursive
+
+[color]
+  ui = true
+  status = auto
+  branch = true
+  diff = true
+  interactive = true
+
+[color "decorate"]
+  HEAD = cyan
+  branch = green
+  remoteBranch = red
+  tag = white
+  stash = magenta
+
+[sendemail]
+  from = damien.laidin@epita.fr
+  smtpencryption = tls
+  smtpserver = smtp.office365.com
+  smtpuser = damien.laidin@epita.fr
+  smtpserverport = 587
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
