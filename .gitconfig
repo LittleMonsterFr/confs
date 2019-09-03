@@ -1,19 +1,18 @@
 [user]
-        name = Damien Laidin
-        email = damien@chirp.io
+	name = Damien Laidin
+	email = damien@chirp.io
 
 [core]
   editor = vim
-  #whitespace = blank-at-eol,space-before-tab,tab-in-indent,blank-at-eof,
   excludesfile = /Users/littlemonster/.gitignore_global
 
 [push]
   default = simple
+	recurseSubmodules = on-demand
 
 [alias]
   s = status
   po = push origin
-  #a = add --all :/
   co = commit
   cos = commit --signoff
   cl = clone
@@ -23,8 +22,13 @@
   st = stash
   stp = stash pop
   pro = pull --rebase origin
+	prod = pull --rebase origin develop
   uncommit = reset HEAD^
-  sub = submodule update --init --recursive
+  sub = !git submodule sync --recursive && git submodule update --init --recursive
+  # bs = !/Users/littlemonster/git-branch-status/git-branch-status -a
+	br = "!f() { \
+				git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \\(.*\\)/ \\1/' -e 's/^[[:space:]]*//'; \
+				}; f"
 
 [color]
   ui = true
@@ -40,15 +44,17 @@
   tag = white
   stash = magenta
 
-[sendemail]
-  from = damien.laidin@epita.fr
-  smtpencryption = tls
-  smtpserver = smtp.office365.com
-  smtpuser = damien.laidin@epita.fr
-  smtpserverport = 587
-
 [filter "lfs"]
-	clean = git-lfs clean -- %f
+  clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
-	required = true
+  required = true
+
+[status]
+	submoduleSummary = true
+
+[diff]
+	submodule = log
+
+[fetch]
+	recurseSubmodules = on-demand

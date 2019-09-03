@@ -1,140 +1,174 @@
-# ~/.bashrc: executed by bash(1) for non-login shells.
-# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
-# for examples
+################################################################################
+# Variables
+################################################################################
+# Don't put duplicate lines in the history and do not add lines that start with
+# a space
+export HISTCONTROL=erasedups:ignoredups:ignorespace
 
-# If not running interactively, don't do anything
-case $- in
-  *i*) ;;
-*) return;;
-esac
+export PATH=/Users/littlemonster/Library/Python/3.7/bin:/Users/littlemonster/Library/Python/2.7/bin/:$PATH
 
-# don't put duplicate lines or lines starting with space in the history.
-# See bash(1) for more options
-HISTCONTROL=ignoreboth
+export NDK_PATH=/Users/littlemonster/Library/Android/sdk/ndk-bundle/
 
-# append to the history file, don't overwrite it
-shopt -s histappend
+export XTENSA_PATH=/Users/littlemonster/Library/Arduino15/packages/esp32/tools/xtensa-esp32-elf-gcc/1.22.0-80-g6c4433a-5.2.0/bin
 
-# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
-HISTSIZE=1000
-HISTFILESIZE=2000
+################################################################################
+# Sourcing
+################################################################################
 
-# check the window size after each command and, if necessary,
-# update the values of LINES and COLUMNS.
+################################################################################
+# Commands
+################################################################################
+# Check the window size after each command and, if necessary, update the values
+# of LINES and COLUMNS
 shopt -s checkwinsize
 
-# If set, the pattern "**" used in a pathname expansion context will
-# match all files and zero or more directories and subdirectories.
-#shopt -s globstar
+# Causes bash to append to history instead of overwriting it so if you start a
+# new terminal, you have old session history
+shopt -s histappend
 
-# make less more friendly for non-text input files, see lesspipe(1)
-[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+# Enable the specific colors for ls (need Coreutils)
+eval `gdircolors ~/.dir_colors`
 
-# set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
-  debian_chroot=$(cat /etc/debian_chroot)
-fi
-
-# set a fancy prompt (non-color, unless we know we "want" color)
-case "$TERM" in
-  xterm-color) color_prompt=yes;;
-esac
-
-# uncomment for a colored prompt, if the terminal has the capability; turned
-# off by default to not distract the user: the focus in a terminal window
-# should be on the output of commands, not on the prompt
-force_color_prompt=yes
-
-if [ -n "$force_color_prompt" ]; then
-  if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
-    # We have color support; assume it's compliant with Ecma-48
-    # (ISO/IEC-6429). (Lack of such support is extremely rare, and such
-    # a case would tend to support setf rather than setaf.)
-    color_prompt=yes
-  else
-    color_prompt=
-  fi
-fi
-
-parse_git_branch() {
-  git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/'
-}
-
-parse_git_repo() {
-  git config --get remote.origin.url 2> /dev/null | cut -f 2 -d '/' | cut -f 1 -d '.'
-}
-
-if [ "$color_prompt" = yes ]; then
-  PS1='\[\033[32m\]\u\[\033[00m\]
-  \[\033[34m\]\w\[\033[00m\]
-    \[\033[31m\]$(parse_git_repo) ->$(parse_git_branch)\[\033[00m\] \$ '
-else
-  PS1='${debian_chroot:+($debian_chroot)}\u@ \w $ '
-fi
-unset color_prompt force_color_prompt
-
-# If this is an xterm set the title to user@host:dir
-case "$TERM" in
-  xterm*|rxvt*)
-    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@: \w\a\]$PS1"
-    ;;
-  *)
-    ;;
-esac
-
-export CLICOLOR=1
-export LSCOLORS=exfxcxdxbxegedabagacad
-
+################################################################################
+# Aliases
+################################################################################
 alias grep='grep --color=auto'
-alias fgrep='fgrep --color=auto'
-alias egrep='egrep --color=auto'
-
-# some more ls aliases
-alias ls='ls -Fh'
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
+alias ls='gls -axFh --color=auto'
+alias ll='gls -alFh --color=auto'
 alias valgrind='colour-valgrind'
 alias flash-hex='st-flash --format ihex write'
-alias engine-valgrind='valgrind --gen-suppressions=all --suppressions=/Users/littlemonster/chirp/chirp-engine/auxiliary/valgrind/osx.suppressions --leak-check=yes --error-exitcode=1'
+alias engine-valgrind='valgrind --leak-check=full --gen-suppressions=all --suppressions=/Users/littlemonster/chirp/chirp-core/auxiliary/valgrind/osx.suppressions --leak-check=yes --error-exitcode=1'
+alias sdk-valgrind='valgrind --leak-check=full --leak-check=yes --show-leak-kinds=all --gen-suppressions=all --suppressions=/Users/littlemonster/chirp/chirp-c-sdk/tests/macOS.suppressions  --error-exitcode=1'
 
-# Add an "alert" alias for long running commands.  Use like so:
-#   sleep 10; alert
-alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+################################################################################
+# Functions
+################################################################################
 
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
+# Copy file with a progress bar
+cpp()
+{
+  set -e
+  strace -q -ewrite cp -- "${1}" "${2}" 2>&1 \
+  | awk '{
+    count += $NF
+    if (count % 10 == 0) {
+      percent = count / total_size * 100
+      printf "%3d%% [", percent
+      for (i=0;i<=percent;i++)
+      printf "="
+      printf ">"
+      for (i=percent;i<100;i++)
+      printf " "
+      printf "]\r"
+    }
+  }
+  END { print "" }' total_size=$(stat -c '%s' "${1}") count=0
+}
 
-if [ -f ~/.bash_aliases ]; then
-  . ~/.bash_aliases
-fi
-
-# enable programmable completion features (you don't need to enable
-# this, if it's already enabled in /etc/bash.bashrc and /etc/profile
-# sources /etc/bash.bashrc).
-if ! shopt -oq posix; then
-  if [ -f /usr/share/bash-completion/bash_completion ]; then
-    . /usr/share/bash-completion/bash_completion
-  elif [ -f /etc/bash_completion ]; then
-    . /etc/bash_completion
+# Copy and go to the directory
+cpg ()
+{
+  if [ -d "$2" ];then
+    cp $1 $2 && cd $2
+  else
+    cp $1 $2
   fi
-fi
+}
+
+# Move and go to the directory
+mvg ()
+{
+  if [ -d "$2" ];then
+    mv $1 $2 && cd $2
+  else
+    mv $1 $2
+  fi
+}
+
+# Create and go to the directory
+mkdirg ()
+{
+  mkdir -p $1
+  cd $1
+}
+
+up ()
+{
+	local d=""
+	limit=$1
+	for ((i=1 ; i <= limit ; i++))
+		do
+			d=$d/..
+		done
+	d=$(echo $d | sed 's/^\///')
+	if [ -z "$d" ]; then
+		d=..
+	fi
+	cd $d
+}
 
 #Color Man page
 man() {
   env LESS_TERMCAP_mb=$'\E[01;31m' \
-    LESS_TERMCAP_md=$'\E[01;38;5;74m' \
-    LESS_TERMCAP_me=$'\E[0m' \
-    LESS_TERMCAP_se=$'\E[0m' \
-    LESS_TERMCAP_so=$'\E[38;5;246m' \
-    LESS_TERMCAP_ue=$'\E[0m' \
-    LESS_TERMCAP_us=$'\E[04;38;5;146m' \
-    man "$@"
+  LESS_TERMCAP_md=$'\E[01;38;5;74m' \
+  LESS_TERMCAP_me=$'\E[0m' \
+  LESS_TERMCAP_se=$'\E[0m' \
+  LESS_TERMCAP_so=$'\E[38;5;246m' \
+  LESS_TERMCAP_ue=$'\E[0m' \
+  LESS_TERMCAP_us=$'\E[04;38;5;146m' \
+  man "$@"
 }
 
-export PATH=/Users/littlemonster/chirp/chirp-engine/build/bin:/usr/local/gcc-7.3/bin:$PATH:/Users/littlemonster/git-clang-format
+parse_git_repo() {
+  remote=$(git config --get remote.origin.url 2> /dev/null)
+  res=$?
+  repo=$(echo ${remote##*/} | cut -f 1 -d '.')
+  if [[ ! $res -eq 0 ]]; then
+    printf "✕"
+  else
+    printf "%s ->" $repo
+  fi
+}
 
-source ~/.git-completion.bash
-source /Users/littlemonster/chirp/chirp-engine/auxiliary/scripts/chirp-auto-completion.sh
+# parse_git_branch() {
+#   branch=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ \1/' -e 's/^[[:space:]]*//'; exit ${PIPESTATUS[0]})
+#   res=$?
+#   if [[ ! $res -eq 0 ]]; then
+#     printf "✕"
+#   else
+#     printf "%s" $branch
+#   fi
+# }
+
+################################################################################
+# Prompt
+################################################################################
+# unstaged (*) and staged (+) changes will be displayed
+GIT_PS1_SHOWDIRTYSTATE=1
+# Show stash state
+GIT_PS1_SHOWSTASHSTATE=1
+# Show untracked files by displaying '%'
+GIT_PS1_SHOWUNTRACKEDFILES=1
+# Colored hint about the current dirty state
+# GIT_PS1_SHOWCOLORHINTS=1
+
+  # Define colors
+LIGHTGRAY="\[\033[0;37m\]"
+WHITE="\[\033[1;37m\]"
+BLACK="\[\033[0;30m\]"
+DARKGRAY="\[\033[1;30m\]"
+RED="\[\033[0;31m\]"
+LIGHTRED="\[\033[1;31m\]"
+GREEN="\[\033[0;32m\]"
+LIGHTGREEN="\[\033[1;32m\]"
+YELLOW="\[\033[0;33m\]"
+BROWN="\[\033[1;33m\]"
+BLUE="\[\033[0;34m\]"
+LIGHTBLUE="\[\033[1;34m\]"
+MAGENTA="\[\033[0;35m\]"
+LIGHTMAGENTA="\[\033[1;35m\]"
+CYAN="\[\033[0;36m\]"
+LIGHTCYAN="\[\033[1;36m\]"
+NOCOLOR="\[\033[0m\]"
+
+PS1="${GREEN}\u\n${YELLOW}├ ${BLUE}\w\n${YELLOW}├─${RED} \$(parse_git_repo) \$(__git_ps1 "[%s]")${YELLOW}\n└── ${MAGENTA}\$ ${NOCOLOR}"
