@@ -25,10 +25,10 @@
 	prod = pull --rebase origin develop
   uncommit = reset HEAD^
   sub = !git submodule sync --recursive && git submodule update --init --recursive
-  # bs = !/Users/littlemonster/git-branch-status/git-branch-status -a
-	br = "!f() { \
-				git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \\(.*\\)/ \\1/' -e 's/^[[:space:]]*//'; \
-				}; f"
+  bs = !/Users/littlemonster/git-branch-status.bash -a
+	# br = "!f() { \
+	# 			git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \\(.*\\)/ \\1/' -e 's/^[[:space:]]*//'; \
+	# 			}; f"
 
 [color]
   ui = true
@@ -45,10 +45,10 @@
   stash = magenta
 
 [filter "lfs"]
-  clean = git-lfs clean -- %f
+	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
-  required = true
+	required = true
 
 [status]
 	submoduleSummary = true
